@@ -139,10 +139,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="DisplayFran.h" />
     <ClInclude Include="interface.h" />
+    <ClInclude Include="lcdError.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DisplayFran.cpp" />
+    <ClCompile Include="lcdError.cpp" />
+    <ClCompile Include="main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

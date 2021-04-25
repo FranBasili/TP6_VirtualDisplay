@@ -1,4 +1,6 @@
 #ifndef TEMPLATE
+#define TEMPLATE 
+	#include "lcdError.h"
 
 	struct cursorPosition
 	{
@@ -6,17 +8,7 @@
 		int column;
 	};
 
-	class lcdError
-	{
-	public:
-		string getErrorName();
-		string getErrorDescription();
-		unsigned long getErrorCode();
-	};
-
-
-	class basicLCD
-	{
+	class basicLCD {
 	public:
 
 		/*=====================================================
@@ -27,7 +19,7 @@
 		*
 		* cadd =1 (cursor address) (ver NOTA 1)
 		*=====================================================*/
-		basicLCD();
+		basicLCD() {};
 
 		/*=====================================================
 		* Name: ~basicLCD
@@ -36,7 +28,7 @@
 		* que se hubiera tomado de forma de evitar
 		* "resources leak".
 		*=====================================================*/
-		~basicLCD();
+		virtual ~basicLCD() {};
 
 		/*=====================================================
 		* Name: lcdInitOk
@@ -54,7 +46,7 @@
 		* Resulta: No genera ningún cambio en el display.
 		* Devuelve en su nombre un lcdError&
 		*=====================================================*/
-		virtual FT_STATUS lcdGetError() = 0;
+		virtual lcdError& lcdGetError() = 0;
 
 		/*=====================================================
 		* Name: lcdClear
@@ -90,7 +82,7 @@
 		* basicLCD lcd;
 		* lcd << ‘a’ << ‘b’ << ‘c’;
 		*=====================================================*/
-		virtual basicLCD& operator<<(const unsigned char c) = 0;
+		virtual basicLCD& operator<<(const char c) = 0;
 
 		/*=====================================================
 		* Name: operator<<()
@@ -105,7 +97,7 @@
 		* basicLCD lcd;
 		* lcd << “Hola” << “ “ << “Mundo”;
 		*=====================================================*/
-		virtual basicLCD& operator<<(const unsigned char* c) = 0;
+		virtual basicLCD& operator<<(const char* c) = 0;
 
 		/*=====================================================
 		* Name: lcdMoveCursorUp
