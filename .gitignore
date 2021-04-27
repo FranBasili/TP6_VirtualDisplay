@@ -30,4 +30,7 @@
 *.exe
 *.out
 *.app
+DisplayVirtual/.vs/
+.vs
 DisplayVirtual/.vs/DisplayVirtual/v16/Browse.VC.opendb
+
