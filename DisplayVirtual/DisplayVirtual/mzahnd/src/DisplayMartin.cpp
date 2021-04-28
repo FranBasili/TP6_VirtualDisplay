@@ -164,14 +164,14 @@ bool DisplayMartin::lcdMoveCursorUp()
 {
 	if (this->curPos.row) {
 		this->curPos.row--;
+		return true;
 	}
-	else {
-		lcdErr.setError("Cursor error.", 
-			"The cursor is already on the upper row.", 
-			UP_BOUNDARY
-		);
-	}
-	return true;
+	
+	lcdErr.setError("Cursor error.", 
+		"The cursor is already on the upper row.", 
+		UP_BOUNDARY
+	);
+	return false;
 }
 
 bool DisplayMartin::lcdMoveCursorRight()
@@ -188,6 +188,7 @@ bool DisplayMartin::lcdMoveCursorRight()
 			"The cursor is already at the end.", 
 			RIGHT_BOUNDARY	
 		);
+		return false;
 	}
 	return true;
 }
@@ -196,14 +197,15 @@ bool DisplayMartin::lcdMoveCursorDown()
 {
 	if (this->curPos.row >= 0 && this->curPos.row < LCD_ROWS-1) {
 		this->curPos.row++;
+		return true;
 	}
-	else {
-		lcdErr.setError("Cursor error.", 
-			"The cursor is already on the bottom row.", 
-			DOWN_BOUNDARY
-		);
-	}
-	return true;
+
+	lcdErr.setError("Cursor error.", 
+		"The cursor is already on the bottom row.", 
+		DOWN_BOUNDARY
+	);
+
+	return false;
 }
 
 bool DisplayMartin::lcdMoveCursorLeft()
@@ -220,7 +222,7 @@ bool DisplayMartin::lcdMoveCursorLeft()
 			"The cursor is already at the beggining of the display.", 
 			LEFT_BOUNDARY
 		);
-
+		return false;
 	}
 	return true;
 }
@@ -234,12 +236,11 @@ bool DisplayMartin::lcdSetCursorPosition(const cursorPosition pos)
 		this->curPos = pos;
 		return true;
 	}
-	else {
-		lcdErr.setError("Cursor error.", 
-			"Invalid position set for cursor.", 
-			OUT_OF_BOUNDS
-		);
-	}
+
+	lcdErr.setError("Cursor error.", 
+		"Invalid position set for cursor.", 
+		OUT_OF_BOUNDS
+	);
 
 	return false;
 }
@@ -345,34 +346,46 @@ void DisplayMartin::insertText(const char* c)
 		}
 	}
 
+	if (valid_c.length() > LCD_AV_CHAR) {
+		lcdErr.setError("Writting error.",
+			"Too many characters in input string. Only printing the last of them.",
+			WRITING_EXCEEDED
+		);
+	}
+	else if (valid_c.length() + CURSOR_REAL_POSITION > LCD_AV_CHAR) {
+		lcdErr.setError("Writting error.",
+			"Exceded last column in last row while printing.",
+			WRITING_EXCEEDED
+		);
+	}
+
 	if (valid_c.length() >= LCD_AV_CHAR) {
 		this->curPos.column = LCD_COLS - 1;
 		this->curPos.row = LCD_ROWS - 1;
 
 		this->text.assign(valid_c.substr(valid_c.length() - LCD_AV_CHAR), LCD_AV_CHAR);
 
-		if (valid_c.length() > LCD_AV_CHAR) {
-			lcdErr.setError("Writting error.",
-				"Too many characters in input string. Only inserting the last of them.",
-				WRITING_EXCEEDED
-			);
-		}
 	}
 	else {
-		this->text.append(valid_c, 0, LCD_AV_CHAR - CURSOR_REAL_POSITION);
+		// Divide the string in 2 pieces:
+		// One with the remaining available characters after the cursor.
+		// The other one,when needed, with those to replace at the beggining of the string.
+		std::string portion1 = valid_c.substr(0, LCD_AV_CHAR - CURSOR_REAL_POSITION);
 
-		if (this->text.size() >= LCD_AV_CHAR) {
-			if (this->text.size() > LCD_AV_CHAR) {
-				lcdErr.setError("Writting error.",
-					"Input had too many characters when added to the current string. The last of them were removed.",
-					WRITING_EXCEEDED
-				);
-			}
-			this->curPos.row = LCD_ROWS - 1;
-			this->curPos.column = LCD_COLS - 1;
-			this->text.resize(LCD_AV_CHAR);
+		this->text.append(portion1, 0, portion1.size());
+
+		if (valid_c.length() > LCD_AV_CHAR - CURSOR_REAL_POSITION) {
+			std::string portion2;
+			portion2.assign(valid_c.substr(portion1.length()));
+
+			this->text.replace(0,  portion2.size(), portion2);
+
+			// Move the cursor properly
+			this->curPos.row = (int)(portion2.size() / LCD_COLS);
+			this->curPos.column = (int)((portion2.size() - this->curPos.row * LCD_COLS));
 		}
 		else {
+			// Move the cursor properly
 			this->curPos.row = (int)(this->text.size() / LCD_COLS);
 			this->curPos.column = (int)((this->text.size() - this->curPos.row * LCD_COLS));
 		}
