@@ -234,6 +234,8 @@ cursorPosition displayFran::lcdGetCursorPosition(){
 
 bool displayFran::updateDisplay() {
 	
+	al_set_target_backbuffer(display);
+
 	al_draw_bitmap(bitmapBackground, 0.0, 0.0, 0);
 
 	for (int row = 0; row <= ROWMAX; row++) {
