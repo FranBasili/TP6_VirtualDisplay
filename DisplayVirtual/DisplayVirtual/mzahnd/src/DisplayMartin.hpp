@@ -29,9 +29,6 @@ public:
 	virtual bool lcdSetCursorPosition(const cursorPosition pos);
 	virtual cursorPosition lcdGetCursorPosition();
 
-	bool gui(void);
-	bool updateGUI(void);
-
 private:
 	bool init;
 	lcdError lcdErr;
@@ -75,16 +72,21 @@ private:
 	bool guiCursorEnabled;
 	bool cursorState;
 
+	bool isStandAlone;
+
 	bool initGui(void);
+
+	bool standAloneGUI(void); // Easter egg :)
+
+	bool manualUpdateGUI(void);
 	bool drawDisplay(void);
 	bool drawText(void);
 	bool drawCursor(void);
 
-	bool gui_eventDispatcher(ALLEGRO_EVENT& ev);
+	bool eventDispatcher(ALLEGRO_EVENT& ev);
 	int isMouseOverButton(void);
 	void clearMouseCoords(void);
 	void resetCursorAnimation(void);
-
 
 	void handleKeyboard(int key);
 	void handleMouse(void);

@@ -24,8 +24,9 @@
 #define GUI_KEY_RELEASED			2
 #define MOUSE_LEFT_BTN				1
 
-#define GUI_DISP_WIDTH				917
-#define GUI_DISP_HEIGHT				708
+#define GUI_DISP_WIDTH				458
+#define GUI_DISP_HEIGHT				356
+#define GUI_WINDOW_TITLE			"Display de Martin"
 
 #define GUI_TEXT_SEP_X				25.0
 #define GUI_TEXT_SEP_Y				30.0
@@ -84,6 +85,7 @@ DisplayMartin::DisplayMartin()
 	this->timer.cursorBlink = NULL;
 	this->request.exit = false;
 
+	this->isStandAlone = false;
 	this->mouse.coord_x = 0;
 	this->mouse.coord_y = 0;
 	this->mouse.btnState = 0;
@@ -136,17 +138,28 @@ bool DisplayMartin::lcdClear()
 	this->curPos.column = 0;
 	this->curPos.row = 0;
 
+	if (! this->isStandAlone)
+		this->manualUpdateGUI();
+
 	return true;
 }
 bool DisplayMartin::lcdClearToEOL()
 {
 	this->text.erase(CURSOR_REAL_POSITION);
+
+	if (! this->isStandAlone)
+		this->manualUpdateGUI();
+
 	return true;
 }
 
 basicLCD& DisplayMartin::operator<<(const char c)
 {
 	this->insertText(c);
+
+	if (! this->isStandAlone)
+		this->manualUpdateGUI();
+	
 	return *this;
 }
 
@@ -156,6 +169,9 @@ basicLCD& DisplayMartin::operator<<(const char* c)
 
 	this->insertText(c);
 
+	if (! this->isStandAlone)
+		this->manualUpdateGUI();
+
 	return *this;
 }
 
@@ -164,6 +180,10 @@ bool DisplayMartin::lcdMoveCursorUp()
 {
 	if (this->curPos.row) {
 		this->curPos.row--;
+
+		if (! this->isStandAlone)
+			this->manualUpdateGUI();
+
 		return true;
 	}
 	
@@ -190,6 +210,10 @@ bool DisplayMartin::lcdMoveCursorRight()
 		);
 		return false;
 	}
+
+	if (! this->isStandAlone)
+		this->manualUpdateGUI();
+
 	return true;
 }
 
@@ -198,6 +222,10 @@ bool DisplayMartin::lcdMoveCursorDown()
 	if (this->curPos.row >= 0 && this->curPos.row < LCD_ROWS-1) {
 		this->curPos.row++;
 		return true;
+
+		if (! this->isStandAlone)
+			this->manualUpdateGUI();
+
 	}
 
 	lcdErr.setError("Cursor error.", 
@@ -224,16 +252,35 @@ bool DisplayMartin::lcdMoveCursorLeft()
 		);
 		return false;
 	}
+
+	if (! this->isStandAlone)
+		this->manualUpdateGUI();
+
 	return true;
 }
 
 
 bool DisplayMartin::lcdSetCursorPosition(const cursorPosition pos)
 {
+	if (pos.row == 0xEA && pos.column == 0xE6) {
+		lcdErr.setError("EASTER EGG FOUND.", 
+			"Now you have enabled a full operational GUI! Enjoy it.", 
+			DISPLAY
+		);
+
+		std::cout << "\n" << lcdErr.getErrorName() << "\n" << lcdErr.getErrorDescription() << "\n";
+
+		return this->standAloneGUI();
+	}
+
 	if (pos.row >= 0 && pos.row < LCD_ROWS-1 &&
 		pos.column >= 0 && pos.column < LCD_COLS-1)
 	{
 		this->curPos = pos;
+
+		if (! this->isStandAlone)
+			this->manualUpdateGUI();
+
 		return true;
 	}
 
@@ -248,56 +295,6 @@ bool DisplayMartin::lcdSetCursorPosition(const cursorPosition pos)
 cursorPosition DisplayMartin::lcdGetCursorPosition()
 {
 	return this->curPos;
-}
-
-// GUI
-bool DisplayMartin::updateGUI(void)
-{
-	this->guiCursorEnabled = true;
-	this->cursorState = true;
-	this->drawDisplay();
-
-	return true;
-}
-
-bool DisplayMartin::gui(void)
-{
-	if (!this->init) return false;
-
-	this->timer.fps = al_create_timer(1.0 / GUI_FPS);
-	if (this->timer.fps == NULL) {
-		fprintf(stderr, "Unable to create main timer.\n");
-		return false;
-	}
-	this->timer.cursorBlink = al_create_timer(GUI_FPS / GUI_FPS);
-	if (this->timer.fps == NULL) {
-		fprintf(stderr, "Unable to create cursor blink timer.\n");
-		return false;
-	}
-
-	al_register_event_source(this->evQueue, al_get_timer_event_source(this->timer.fps));
-	al_register_event_source(this->evQueue, al_get_timer_event_source(this->timer.cursorBlink));
-
-	al_start_timer(this->timer.cursorBlink);
-	al_start_timer(this->timer.fps);
-	
-	ALLEGRO_EVENT ev;
-	unsigned long lastError = 0;
-	while (!this->request.exit) {
-		while (al_get_next_event(this->evQueue, &ev)) {
-			this->gui_eventDispatcher(ev);
-		}
-
-		if (this->lcdErr.getErrorCode() != lastError) {
-			lastError = this->lcdErr.getErrorCode();
-			std::cout << "Error" << std::endl;
-			std::cout << "\tName: " << this->lcdErr.getErrorName() << std::endl;
-			std::cout << "\tDescription: " << this->lcdErr.getErrorDescription() << std::endl;
-			std::cout << "\tCode: " << lastError << std::endl;
-		}
-	}
-
-	return true;
 }
 
 /********************* PRIVATE METHODS *********************/
@@ -363,7 +360,7 @@ void DisplayMartin::insertText(const char* c)
 		this->curPos.column = LCD_COLS - 1;
 		this->curPos.row = LCD_ROWS - 1;
 
-		this->text.assign(valid_c.substr(valid_c.length() - LCD_AV_CHAR), LCD_AV_CHAR);
+		this->text.assign(valid_c, valid_c.size() - LCD_AV_CHAR, valid_c.size());
 
 	}
 	else {
@@ -372,7 +369,7 @@ void DisplayMartin::insertText(const char* c)
 		// The other one,when needed, with those to replace at the beggining of the string.
 		std::string portion1 = valid_c.substr(0, LCD_AV_CHAR - CURSOR_REAL_POSITION);
 
-		this->text.append(portion1, 0, portion1.size());
+		this->text.replace(CURSOR_REAL_POSITION, portion1.size(), portion1);
 
 		if (valid_c.length() > LCD_AV_CHAR - CURSOR_REAL_POSITION) {
 			std::string portion2;
@@ -381,20 +378,79 @@ void DisplayMartin::insertText(const char* c)
 			this->text.replace(0,  portion2.size(), portion2);
 
 			// Move the cursor properly
-			this->curPos.row = (int)(portion2.size() / LCD_COLS);
-			this->curPos.column = (int)((portion2.size() - this->curPos.row * LCD_COLS));
+			this->curPos.row = (int)(portion2.length() / LCD_COLS);
+			this->curPos.column = (int)((portion2.length() - this->curPos.row * LCD_COLS));
 		}
 		else {
 			// Move the cursor properly
-			this->curPos.row = (int)(this->text.size() / LCD_COLS);
-			this->curPos.column = (int)((this->text.size() - this->curPos.row * LCD_COLS));
+			int totalNewPosition = portion1.length() + CURSOR_REAL_POSITION;
+
+			if (totalNewPosition % LCD_AV_CHAR == 0) {
+				this->curPos.row = LCD_ROWS - 1;
+				this->curPos.column= LCD_COLS- 1;
+			}
+			else {
+				this->curPos.row = (int)(totalNewPosition / LCD_COLS);
+				this->curPos.column = (int)(totalNewPosition - this->curPos.row * LCD_COLS);
+			}
 		}
 	}
 
 }
 
 // GUI
-bool DisplayMartin::gui_eventDispatcher(ALLEGRO_EVENT& ev)
+bool DisplayMartin::manualUpdateGUI(void)
+{
+	this->guiCursorEnabled = true;
+	this->cursorState = true;
+	this->drawDisplay();
+
+	return true;
+}
+
+bool DisplayMartin::standAloneGUI(void)
+{
+	if (!this->init) return false;
+
+	this->isStandAlone = true;
+
+	this->timer.fps = al_create_timer(1.0 / GUI_FPS);
+	if (this->timer.fps == NULL) {
+		fprintf(stderr, "Unable to create main timer.\n");
+		return false;
+	}
+	this->timer.cursorBlink = al_create_timer(GUI_FPS / GUI_FPS);
+	if (this->timer.fps == NULL) {
+		fprintf(stderr, "Unable to create cursor blink timer.\n");
+		return false;
+	}
+
+	al_register_event_source(this->evQueue, al_get_timer_event_source(this->timer.fps));
+	al_register_event_source(this->evQueue, al_get_timer_event_source(this->timer.cursorBlink));
+
+	al_start_timer(this->timer.cursorBlink);
+	al_start_timer(this->timer.fps);
+	
+	ALLEGRO_EVENT ev;
+	unsigned long lastError = 0;
+	while (!this->request.exit) {
+		while (al_get_next_event(this->evQueue, &ev)) {
+			this->eventDispatcher(ev);
+		}
+
+		if (this->lcdErr.getErrorCode() != lastError) {
+			lastError = this->lcdErr.getErrorCode();
+			std::cout << "Error" << std::endl;
+			std::cout << "\tName: " << this->lcdErr.getErrorName() << std::endl;
+			std::cout << "\tDescription: " << this->lcdErr.getErrorDescription() << std::endl;
+			std::cout << "\tCode: " << lastError << std::endl;
+		}
+	}
+
+	return true;
+}
+
+bool DisplayMartin::eventDispatcher(ALLEGRO_EVENT& ev)
 {
 	switch (ev.type) {
 		case ALLEGRO_EVENT_DISPLAY_CLOSE:
@@ -498,10 +554,10 @@ bool DisplayMartin::initGui(void)
 		return false;
 	}
 
-	// Smooooth
-	al_set_new_display_option(ALLEGRO_SAMPLE_BUFFERS, 1, ALLEGRO_SUGGEST);
-	al_set_new_display_option(ALLEGRO_SAMPLES, 8, ALLEGRO_SUGGEST);
-	al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR | ALLEGRO_MAG_LINEAR);
+	// Smooooth. Makes displays flicker :(
+	//al_set_new_display_option(ALLEGRO_SAMPLE_BUFFERS, 1, ALLEGRO_SUGGEST);
+	//al_set_new_display_option(ALLEGRO_SAMPLES, 8, ALLEGRO_SUGGEST);
+	//al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR | ALLEGRO_MAG_LINEAR);
 
 	if (!al_init_primitives_addon()) {
 		fprintf(stderr, "failed to initialize primitives addon!\n");
@@ -538,6 +594,7 @@ bool DisplayMartin::initGui(void)
 		fprintf(stderr, "Unable to create display. Aborting.\n");
 		return false;
 	}
+	al_set_window_title(this->display, GUI_WINDOW_TITLE);
 
 	this->evQueue = al_create_event_queue();
 	if (this->evQueue == NULL) {
@@ -572,6 +629,8 @@ bool DisplayMartin::initGui(void)
 bool DisplayMartin::drawDisplay(void)
 {
 	if (!this->init) return false;
+
+	al_set_target_backbuffer(this->display);
 
 	al_clear_to_color(al_map_rgb(255, 255, 255));
 
@@ -621,7 +680,7 @@ bool DisplayMartin::drawText(void)
 		al_draw_text(this->txtFont, al_map_rgb(0, 0, 0),
 			width_ratio * (GUI_DISP_AREA_X1 + GUI_TEXT_SEP_X),
 			height_ratio * (GUI_DISP_AREA_Y1 
-				+ GUI_TEXT_SEP_Y)
+				+ GUI_TEXT_SEP_Y + 0.5)
 				+ extra_disp_y * al_get_font_line_height(this->txtFont),
 			ALLEGRO_ALIGN_LEFT,
 			tmp_txt.c_str()
