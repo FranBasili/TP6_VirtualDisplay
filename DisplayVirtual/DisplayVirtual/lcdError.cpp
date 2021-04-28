@@ -15,13 +15,13 @@ unsigned long lcdError::getErrorCode() {
 
 bool lcdError::setError(const char* name_, const char* description_, unsigned long int code_) {
 	int success = false;
-	if (*name_ != 0){
+	if (name_ != NULL){
 		(this->name).clear();
 		(this->name).append(name_);
 		success = true;
 	}
 	
-	if (*description_ != 0) {
+	if (description_ != NULL) {
 		(this->description).clear();
 		(this->description).append(description_);
 		success = true;
