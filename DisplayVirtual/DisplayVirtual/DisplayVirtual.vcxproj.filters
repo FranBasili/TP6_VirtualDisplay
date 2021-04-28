@@ -33,6 +33,9 @@
     <ClInclude Include="mzahnd\src\DisplayMartin.hpp">
       <Filter>Header Files\Martin</Filter>
     </ClInclude>
+    <ClInclude Include="displayTest.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DisplayFran.cpp">
@@ -46,6 +49,9 @@
     </ClCompile>
     <ClCompile Include="mzahnd\src\DisplayMartin.cpp">
       <Filter>Source Files\Martin</Filter>
+    </ClCompile>
+    <ClCompile Include="displayTest.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
