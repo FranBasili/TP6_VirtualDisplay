@@ -8,16 +8,18 @@ void delay(float number_of_seconds);
 
 int main() {
 	basicLCD* pDisplay;
-	//displayFran dis1;
+
+    //Fran
+	displayFran dispF;
 
     // Martin
     DisplayMartin dispM;
+
+
     pDisplay = &dispM;
 
-
-    //    BANCO DE TESTEO FRAN
-/*
-    pDisplay = &dis1;
+    /*
+    pDisplay = &dispF;
     std::cout << "Todo ok? \t" << pDisplay->lcdInitOk() << std::endl;
     delay(2);
     (*pDisplay) << "Testeando" << " " << "ando??";
@@ -66,7 +68,7 @@ int main() {
     delay(2);
     pDisplay->lcdClear();
     delay(2);
-*/
+ */
 
     return dispM.gui();
 }
