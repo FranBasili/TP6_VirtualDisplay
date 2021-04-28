@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\Martin">
+      <UniqueIdentifier>{68c72f1c-4ca1-49ba-8e7a-842f289bfa8a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Martin">
+      <UniqueIdentifier>{66e5ab3c-9c3c-43ea-b387-7933ef30d265}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="interface.h">
@@ -24,6 +30,9 @@
     <ClInclude Include="DisplayFran.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="mzahnd\src\DisplayMartin.hpp">
+      <Filter>Header Files\Martin</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DisplayFran.cpp">
@@ -34,6 +43,9 @@
     </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mzahnd\src\DisplayMartin.cpp">
+      <Filter>Source Files\Martin</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
