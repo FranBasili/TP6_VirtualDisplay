@@ -21,7 +21,7 @@ int main() {
 
     basicLCD* pDisplay[DISPLAYS_TO_TEST] = {&dispF, &dispM};
 
-    //tests(pDisplay, DISPLAYS_TO_TEST);
+    tests(pDisplay, DISPLAYS_TO_TEST);
 
     std::string seeEaster;
     std::cout << "All test have finished.\n"
