@@ -115,7 +115,7 @@ void tests(basicLCD** pDisplay, int size)
             << "curry desdeotra dimension  :)"
             << "\n";
         (*currentDisp) << "curry desde" << "otra dimension" << "  :)";
-        testCursorPosition(currentDisp, 1, 15);
+        testCursorPosition(currentDisp, 0, 0);
         delay(2);
 
         std::cout << "Inserting very long string. "
@@ -124,7 +124,7 @@ void tests(basicLCD** pDisplay, int size)
         // This are 64 X's and 32 A's
         (*currentDisp) << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
         delay(2);
-        testCursorPosition(currentDisp, 1, 15);
+        testCursorPosition(currentDisp, 0, 0);
 
         std::cout << "Clear display." << std::endl;
         currentDisp->lcdClear();

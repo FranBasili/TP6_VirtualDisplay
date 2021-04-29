@@ -21,16 +21,16 @@ int main() {
 
     basicLCD* pDisplay[DISPLAYS_TO_TEST] = {&dispF, &dispM};
 
-    tests(pDisplay, DISPLAYS_TO_TEST);
+    //tests(pDisplay, DISPLAYS_TO_TEST);
 
-    //std::string seeEaster;
-    //std::cout << "All test have finished.\n"
-    //    << "Would you like to see an easter egg? :D [Y/N] ";
-    //std::cin >> seeEaster;
-    //if (seeEaster.compare("y") || seeEaster.compare("Y")) {
-    //    const cursorPosition easterEgg = { 0xEA, 0xE6 };
-    //    pDisplay[DISPLAY_MARTIN]->lcdSetCursorPosition(easterEgg);
-    //}
-    //
+    std::string seeEaster;
+    std::cout << "All test have finished.\n"
+        << "Would you like to see an easter egg? :D [Y/N] ";
+    std::cin >> seeEaster;
+    if (seeEaster == "y" || seeEaster == "Y") {
+        const cursorPosition easterEgg = { 0xEA, 0xE6 };
+        pDisplay[DISPLAY_MARTIN]->lcdSetCursorPosition(easterEgg);
+    }
+    
     return 0;
 }
