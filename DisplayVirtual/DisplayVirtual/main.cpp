@@ -1,13 +1,14 @@
 #include <iostream>
 
 #include "DisplayFran.h"
+#include "displayTrini.h"
 #include "mzahnd/src/DisplayMartin.hpp"
 
 #include "displayTest.h"
 
 enum {
     DISPLAY_FRAN,
-    //DISPLAY_TRINI,
+    DISPLAY_TRINI,
     DISPLAY_MARTIN,
     DISPLAYS_TO_TEST
 };
@@ -19,8 +20,12 @@ int main() {
     // Martin
     DisplayMartin dispM;
 
-    basicLCD* pDisplay[DISPLAYS_TO_TEST] = {&dispF, &dispM};
+    // Trini
+    displayTrini dispT;
 
+    basicLCD* pDisplay[DISPLAYS_TO_TEST] = {&dispF, &dispT, &dispM};
+
+    // Tests :)
     tests(pDisplay, DISPLAYS_TO_TEST);
 
     std::string seeEaster;

@@ -107,27 +107,6 @@ basicLCD& displayFran:: operator<<(const char* c) {
 	int tempSize = (int) temp.size();
 	int posActual = cursor.column + cursor.row * (COLMAX + 1);
 	
-	/*if ((CHARS - POSACTUAL) > tempSize){
-		// Si el largo del arreglo de chars es menor a la cantidad de caracteres libres, 
-		//cargo el arreglo de chars completo. 
-		text.replace(text.begin() + POSACTUAL, text.begin() + POSACTUAL + tempSize, temp.begin(), temp.end());
-			
-		if ((cursor.column += tempSize) > COLMAX) {
-			if(cursor.row < ROWMAX) 
-				cursor.row++;
-			cursor.column = cursor.column % (COLMAX+1);
-		}
-
-	}
-	else {
-		// Si el largo del arreglo de chars es mayor a la cantidad de caracteres libres, 
-		//cargo los chars que entren de atras para adelante.
-		text.replace(text.begin() + POSACTUAL, text.end(), temp.end()- (CHARS - POSACTUAL), temp.end());
-
-		cursor.row = 0;
-		cursor.column = 0;
-	}*/
-
 	if (tempSize >= CHARS)
 	{
 		text.assign(temp, tempSize - CHARS, tempSize);

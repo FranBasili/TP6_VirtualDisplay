@@ -82,6 +82,7 @@
   <ItemGroup>
     <ClInclude Include="DisplayFran.h" />
     <ClInclude Include="displayTest.h" />
+    <ClInclude Include="displayTrini.h" />
     <ClInclude Include="interface.h" />
     <ClInclude Include="lcdError.h" />
     <ClInclude Include="mzahnd\src\DisplayMartin.hpp" />
@@ -89,6 +90,7 @@
   <ItemGroup>
     <ClCompile Include="DisplayFran.cpp" />
     <ClCompile Include="displayTest.cpp" />
+    <ClCompile Include="displayTrini.cpp" />
     <ClCompile Include="lcdError.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mzahnd\src\DisplayMartin.cpp" />
