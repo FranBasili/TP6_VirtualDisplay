@@ -13,6 +13,18 @@ enum {
     DISPLAYS_TO_TEST
 };
 
+bool queryUser(std::string msg)
+{
+    std::string ans;
+    std::cout << msg;
+    std::cin >> ans;
+    if (ans == "y" || ans == "Y") {
+        return true;
+    }
+
+    return false;
+}
+
 int main() {
     //Fran
 	displayFran dispF;
@@ -25,17 +37,15 @@ int main() {
 
     basicLCD* pDisplay[DISPLAYS_TO_TEST] = {&dispF, &dispT, &dispM};
 
-    // Tests :)
-    tests(pDisplay, DISPLAYS_TO_TEST);
+    if (queryUser("Run tests? [Y/N] ")) {
+        // Tests :)
+        tests(pDisplay, DISPLAYS_TO_TEST);
+    }
 
-    std::string seeEaster;
-    std::cout << "All test have finished.\n"
-        << "Would you like to see an easter egg? :D [Y/N] ";
-    std::cin >> seeEaster;
-    if (seeEaster == "y" || seeEaster == "Y") {
+    if (queryUser("All test have finished.\nWould you like to see an easter egg? :D [Y/N] "))
+    {
         const cursorPosition easterEgg = { 0xEA, 0xE6 };
         pDisplay[DISPLAY_MARTIN]->lcdSetCursorPosition(easterEgg);
     }
-    
     return 0;
 }
