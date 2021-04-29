@@ -360,8 +360,7 @@ void DisplayMartin::insertText(const char* c)
 		this->curPos.column = LCD_COLS - 1;
 		this->curPos.row = LCD_ROWS - 1;
 
-		this->text.assign(valid_c, valid_c.size() - LCD_AV_CHAR, valid_c.size());
-
+		this->text.assign(valid_c, valid_c.size() - LCD_AV_CHAR, LCD_AV_CHAR);
 	}
 	else {
 		// Divide the string in 2 pieces:
@@ -371,7 +370,7 @@ void DisplayMartin::insertText(const char* c)
 
 		this->text.replace(CURSOR_REAL_POSITION, portion1.size(), portion1);
 
-		if (valid_c.length() > LCD_AV_CHAR - CURSOR_REAL_POSITION) {
+		if (valid_c.length() > (size_t)(LCD_AV_CHAR - CURSOR_REAL_POSITION)) {
 			std::string portion2;
 			portion2.assign(valid_c.substr(portion1.length()));
 
