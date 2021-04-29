@@ -105,8 +105,9 @@ basicLCD& displayFran :: operator<< (const char c) {
 basicLCD& displayFran:: operator<<(const char* c) {
 	string temp((const char*)c);
 	int tempSize = (int) temp.size();
+	int posActual = cursor.column + cursor.row * (COLMAX + 1);
 	
-	if ((CHARS - POSACTUAL) > (int)temp.size()){
+	/*if ((CHARS - POSACTUAL) > tempSize){
 		// Si el largo del arreglo de chars es menor a la cantidad de caracteres libres, 
 		//cargo el arreglo de chars completo. 
 		text.replace(text.begin() + POSACTUAL, text.begin() + POSACTUAL + tempSize, temp.begin(), temp.end());
@@ -123,9 +124,46 @@ basicLCD& displayFran:: operator<<(const char* c) {
 		//cargo los chars que entren de atras para adelante.
 		text.replace(text.begin() + POSACTUAL, text.end(), temp.end()- (CHARS - POSACTUAL), temp.end());
 
-		cursor.row = ROWMAX;
-		cursor.column = COLMAX;
+		cursor.row = 0;
+		cursor.column = 0;
+	}*/
+
+	if (tempSize >= CHARS)
+	{
+		text.assign(temp, tempSize - CHARS, tempSize);
 	}
+
+	else 
+	{
+		string string1=temp.substr(0, CHARS - posActual);   
+		text.replace(posActual, string1.size(), string1);
+
+		if ((posActual + tempSize) > CHARS)
+		{
+			string string2= temp.substr(string1.size());
+			text.replace(0, string2.size(), string2);
+
+			cursor.row = (int)(string2.size() / (COLMAX + 1));
+			cursor.column = (int)(string2.size() % (COLMAX + 1));
+		}
+		else 
+		{
+			// Posicion final del cursor para el caso de que no se haya usado string2
+			int posFinal = string1.size() + posActual;
+			if (!(posFinal % CHARS))
+			{
+				cursor.row = 0;
+				cursor.column = 0;
+			}
+			else
+			{
+				cursor.row = posFinal / (COLMAX + 1);
+				cursor.column = posFinal % (COLMAX + 1);
+			}
+		}
+	}
+
+
 	updateDisplay();
 	return *this;
 }
