@@ -1,0 +1,310 @@
+#include <iostream>
+#include "DisplayFran.h"
+#include <allegro5/allegro.h>
+#include <allegro5/allegro_image.h>
+#include <allegro5/allegro_font.h>
+#include <allegro5/allegro_ttf.h>
+#include <allegro5/allegro_color.h>
+#include <allegro5/allegro_primitives.h>
+
+
+#define ROWMAX	1
+#define COLMAX	15
+#define CHARS	((ROWMAX+1)*(COLMAX+1))
+#define POSACTUAL (cursor.column + cursor.row * COLMAX)
+
+
+#define DISPLAYWIDTH	330
+#define DISPLAYHEIGHT	174
+#define BLACK		al_map_rgb(0, 0 ,0)
+#define XOFFSET		10
+#define YOFFSET		20
+#define CHARDISTX	5
+#define CHARDISTY	10
+#define POSX(col)	((col)*CHARDISTX + XOFFSET)
+#define POSY(row)	((row)*CHARDISTY + YOFFSET)
+#define RECT_HEIGH	20
+#define RECT_WIDTH	10
+
+using namespace std;
+
+static ALLEGRO_DISPLAY* display;
+static ALLEGRO_FONT* font;
+static ALLEGRO_BITMAP* bitmapBackground;
+
+bool initAllegro(lcdError& error);
+bool destroyAllegro();
+
+displayFran:: displayFran(){
+		
+	initOk = true;
+
+	//Limpiamos el display
+	initOk &= clearDisplay({ 0,0 }, {ROWMAX,COLMAX});
+
+	initOk &= initAllegro(error);
+
+	if (initOk == false) {
+		destroyAllegro();
+	}
+	cursor.column = 0;
+	cursor.row = 0;
+
+	updateDisplay();
+}
+
+displayFran:: ~displayFran(){
+	clearDisplay({0,0}, {ROWMAX,COLMAX});
+	destroyAllegro();
+}
+
+bool displayFran :: lcdInitOk() {
+	return	initOk;
+}
+
+lcdError& displayFran::lcdGetError() {
+	return this->error;
+}
+
+bool displayFran::lcdClear() {
+	if (!clearDisplay({0,0}, {ROWMAX,COLMAX})) {
+		error.setError("Cleaning error.", "The display can't be cleaned", FAIL_CLEAR);
+		return false;
+	}
+		
+	updateDisplay();
+	return true;
+}
+
+bool displayFran::lcdClearToEOL() {
+	if (!clearDisplay(cursor, {cursor.row, COLMAX})) {
+		error.setError("Cleaning error.", "The display can't be cleaned to EOL", FAIL_CLEAR);
+		return false;
+	}
+		
+	updateDisplay();
+	return true;
+}
+
+basicLCD& displayFran ::operator<< (const unsigned char c) {
+	text[POSACTUAL] = c;
+		
+	if (cursor.column == COLMAX && cursor.row < ROWMAX) {
+		cursor.row++;
+		cursor.column = 0;
+	}
+	else if (cursor.column < COLMAX) {
+		cursor.column++;
+	}
+	updateDisplay();
+	return *this;
+}
+
+basicLCD& displayFran::operator<<(const unsigned char* c) {
+	string temp((const char*)c);
+	int tempSize = temp.size();
+	
+	if ((CHARS - POSACTUAL) > (int)temp.size()){
+		// Si el largo del arreglo de chars es menor a la cantidad de caracteres libres, 
+		//cargo el arreglo de chars completo. 
+		text.replace(text.begin() + POSACTUAL, text.begin() + POSACTUAL + tempSize, temp.begin(), temp.end());
+			
+		if ((cursor.column += tempSize) > COLMAX) {
+			if(cursor.row < ROWMAX) 
+				cursor.row++;
+			cursor.column = cursor.column % ROWMAX;
+		}
+
+	}
+	else {
+		// Si el largo del arreglo de chars es mayor a la cantidad de caracteres libres, 
+		//cargo los chars que entren de atras para adelante.
+		text.replace(text.begin() + POSACTUAL, text.end(), temp.end()- (CHARS - POSACTUAL), temp.end());
+
+		cursor.row = ROWMAX;
+		cursor.column = COLMAX;
+	}
+
+	text.replace(text.begin() + POSACTUAL, text.end(), temp.begin(), temp.end());
+	return *this;
+}
+
+bool displayFran::lcdMoveCursorUp()
+{
+	if (cursor.row > 0)
+	{
+		cursor.row--;
+		return true;
+	}
+	else
+	{
+
+		error.setError("Up Boundry error.", "The cursor is already in the high boundary", UP_BOUNDARY);
+		return false;
+	}
+	updateDisplay();
+}
+
+bool displayFran::lcdMoveCursorDown()
+{
+	if (cursor.row < ROWMAX)
+	{
+		cursor.row++;
+		return true;
+	}
+	else
+	{
+		error.setError("Down Boundry error.", "The cursor is already in the low boundary", DOWN_BOUNDARY);
+		return false;
+	}
+	updateDisplay();
+}
+
+bool displayFran::lcdMoveCursorRight() {
+	if (cursor.column < COLMAX)
+	{
+		cursor.column++;
+		return true;
+	}
+	else
+	{
+		if (cursor.row == COLMAX)
+		{
+
+			error.setError("Right Boundry error.", "The cursor is already in the right boundary", RIGHT_BOUNDARY);
+			return false;
+		}
+		else
+		{
+			cursor.column = 0;
+			cursor.row++;
+			return true;
+		}
+	}
+	updateDisplay();
+}
+
+bool displayFran::lcdMoveCursorLeft() {
+	
+	if (cursor.column >= 1)
+	{
+		cursor.column--;
+		return true;
+	}
+	else
+	{
+		if (cursor.row <= 0)
+		{
+			error.setError("Left Boundry error.", "The cursor is already in the left boundary", LEFT_BOUNDARY);
+
+			return false;
+		}
+		else
+		{
+			cursor.column = COLMAX;
+			cursor.row--;
+			return true;
+		}
+	}
+	updateDisplay();
+}
+
+bool displayFran::lcdSetCursorPosition(const cursorPosition pos) {
+	if (pos.row <= COLMAX && pos.row >= 0 && pos.column >= 0 && pos.column <= ROWMAX)
+	{
+		cursor.row = pos.row;
+		cursor.column = pos.column;
+		return true;
+	}
+	else 
+	{
+		error.setError("Cursor Out of bounds", "The cursor position is bigger than the display.", OUT_OF_BOUNDS);
+		return false;
+	}
+}
+
+cursorPosition displayFran::lcdGetCursorPosition(){
+	return cursor;
+}
+
+bool displayFran::updateDisplay() {
+	al_draw_bitmap(bitmapBackground, 0.0, 0.0, 0);
+
+	for (int row = 0; row <= ROWMAX; row++) {
+		for (int col = 0; col <= COLMAX; col++) {
+			al_draw_text(font, BLACK, POSX(col), POSY(row), ALLEGRO_ALIGN_CENTER, &(text[POSACTUAL]));
+		}
+	}
+
+	al_draw_filled_rectangle(POSX(cursor.column), POSX(cursor.column), POSX(cursor.column) + RECT_WIDTH, POSY(cursor.row)+RECT_HEIGH, BLACK);
+	return	true;
+}
+
+bool displayFran::clearDisplay(cursorPosition cursor, cursorPosition cursorf)
+{
+	try {
+		int posf = cursorf.row * COLMAX + cursorf.column;
+		text = text.replace(POSACTUAL, 1, posf - POSACTUAL, ' ');
+	}
+	catch (const std::out_of_range& oor)
+	{
+		cout << oor.what() << endl;
+		return false;
+	}
+
+	catch (const std::length_error& l_)
+	{
+		cout << l_.what() << endl;
+		return false;
+	}
+
+	catch (const std::bad_alloc& ba)
+	{
+		cout << ba.what() << endl;
+		return false;
+	}
+
+	return true;
+}
+
+bool initAllegro(lcdError& error) {
+	if (!al_init()){
+		error.setError("Initializing allegro error", "An error ocurred while al_init()", ALINIT);
+		return false;
+	}
+
+	al_init_image_addon();
+	al_init_font_addon();
+	al_init_ttf_addon();
+	al_init_primitives_addon();
+
+	display = al_create_display(DISPLAYWIDTH, DISPLAYHEIGHT);
+	bitmapBackground = al_load_bitmap("displayBackgroundFran.png");
+	font = al_load_ttf_font("FontFran.ttf", 12, 0);
+
+	if (display == NULL){
+		error.setError("Display Error", "Error creating display", DISPLAY);
+		return false;
+	}
+	else if (bitmapBackground == NULL) {
+		error.setError("Background error.", "Error loading the background", BACKGROUND);
+			return false;
+
+	} else if (font == NULL) {
+		error.setError("Font error", "Error loading the font", FONT);
+			return false;
+	}
+
+	return true;
+}
+
+bool destroyAllegro() {
+	al_destroy_font(font);
+	al_destroy_display(display);
+	al_destroy_bitmap(bitmapBackground);
+	al_shutdown_image_addon();
+	al_shutdown_font_addon();
+	al_shutdown_ttf_addon();
+
+	return true;
+}
